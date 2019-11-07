@@ -148,19 +148,39 @@ class ExactInference(InferenceModule):
         emissionModel = busters.getObservationDistribution(noisyDistance)
         pacmanPosition = gameState.getPacmanPosition()
 
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        
+        #util.raiseNotDefined()
 
         # Replace this code with a correct observation update
         # Be sure to handle the "jail" edge case where the ghost is eaten
         # and noisyDistance is None
+       
+        
+        # updated beliefs using emission model (get some data, update your beliefs)
         allPossible = util.Counter()
-        for p in self.legalPositions:
-            trueDistance = util.manhattanDistance(p, pacmanPosition)
-            if emissionModel[trueDistance] > 0:
-                allPossible[p] = 1.0
 
-        "*** END YOUR CODE HERE ***"
+        # if ghost is eaten place it in jail with a probability of 1
+        if noisyDistance is None:
+        	allPossible[self.getJailPosition()] = 1.0
+    
+
+        # for all legal ghost positions
+        for p in self.legalPositions:
+        	# find the true distance to each position 
+            trueDistance = util.manhattanDistance(p, pacmanPosition)
+
+            if emissionModel[trueDistance] > 0:
+               
+               # let B = belief you're in a location, let N = noisyDistance
+               # probability you're in that location given a noisy distance:
+               # = (prob you're a certain distance a way given a belief * prob belief) / prob(noisyDistance)
+               # P(B|N) = P(N|B)*P(B) / P(N)
+               # / P(N) is accomplished by .normalize()
+               # P(B|N) is allPossible, P(N|B) is the emission model, and P(B) is self.beliefs
+
+               allPossible[p] = emissionModel[trueDistance] * self.beliefs[p]
+
+ 
 
         allPossible.normalize()
         self.beliefs = allPossible
@@ -253,7 +273,25 @@ class ParticleFilter(InferenceModule):
         Storing your particles as a Counter (where there could be an associated
         weight with each position) is incorrect and may produce errors.
         """
-        "*** YOUR CODE HERE ***"
+        "Begin with a uniform distribution over ghost positions."
+        self.particles = []
+
+
+        numParticlesPerPos = self.numParticles / len(self.legalPositions)
+     
+		for particle in self.numParticles:
+			particles.append()
+
+
+		#self.particles[(1,1), (1,2)]
+        """for particle in range(numParticlesPerPos):
+        	for pos in self.legalPositions:	
+        		
+        		self.particles.append(pos)
+"""
+        #self.particles.normalize()
+
+        # downweihgt = old prob * prob(noisy given true given sensor) 
 
     def observe(self, observation, gameState):
         """
@@ -286,6 +324,12 @@ class ParticleFilter(InferenceModule):
         emissionModel = busters.getObservationDistribution(noisyDistance)
         pacmanPosition = gameState.getPacmanPosition()
         "*** YOUR CODE HERE ***"
+
+        allPossible = []
+        # if ghost is eaten place it in jail with a probability of 1
+        if noisyDistance is None:
+        	allPossible[self.getJailPosition()] = 1.0
+
         util.raiseNotDefined()
 
     def elapseTime(self, gameState):
@@ -313,7 +357,8 @@ class ParticleFilter(InferenceModule):
         Counter object)
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.particles
+        
 
 class MarginalInference(InferenceModule):
     """
