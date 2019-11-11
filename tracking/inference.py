@@ -147,14 +147,7 @@ class ExactInference(InferenceModule):
         noisyDistance = observation
         emissionModel = busters.getObservationDistribution(noisyDistance)
         pacmanPosition = gameState.getPacmanPosition()
-
-        
-        #util.raiseNotDefined()
-
-        # Replace this code with a correct observation update
-        # Be sure to handle the "jail" edge case where the ghost is eaten
-        # and noisyDistance is None
-       
+   
         
         # updated beliefs using emission model (get some data, update your beliefs)
         allPossible = util.Counter()
@@ -171,9 +164,9 @@ class ExactInference(InferenceModule):
 
             if emissionModel[trueDistance] > 0:
                
-               # let B = belief you're in a location, let N = noisyDistance
-               # probability you're in that location given a noisy distance:
-               # = (prob you're a certain distance a way given a belief * prob belief) / prob(noisyDistance)
+               # let B = belief ghost is in a location, let N = noisyDistance
+               # probability ghost is in that location given a noisy distance:
+               # = (prob you're a certain distance away given a belief * prob belief) / prob(noisyDistance)
                # P(B|N) = P(N|B)*P(B) / P(N)
                # / P(N) is accomplished by .normalize()
                # P(B|N) is allPossible, P(N|B) is the emission model, and P(B) is self.beliefs
@@ -239,6 +232,12 @@ class ExactInference(InferenceModule):
         positions after a time update from a particular position.
         """
         "*** YOUR CODE HERE ***"
+        # the distribution over new positions for the ghost,
+        # given its previous position (oldPos) as well as Pacman's current position
+    
+        # newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldPos))
+        # for newPos, prob in newPosDist.items():
+
         util.raiseNotDefined()
 
     def getBeliefDistribution(self):
@@ -274,13 +273,24 @@ class ParticleFilter(InferenceModule):
         weight with each position) is incorrect and may produce errors.
         """
         "Begin with a uniform distribution over ghost positions."
-        self.particles = []
-
-
+        self.particles = [None] * self.numParticles
+      
         numParticlesPerPos = self.numParticles / len(self.legalPositions)
+       
+
+        # for all given particles evenly distribute the particles among the legal positions
+        for pos in self.legalPositions:
+        	for particle in range(numParticlesPerPos):
+        		self.particles[particle] = pos 
+        		#self.particles.append(pos)
+        		
+        # self.particles.normalize()
+        
      
-		for particle in self.numParticles:
-			particles.append()
+
+     	# they all have a weight of 1, the list should contain the coordinates of each particle
+		#for particle in self.numParticles:
+		#	particles.append()
 
 
 		#self.particles[(1,1), (1,2)]
