@@ -176,6 +176,7 @@ class ExactInference(InferenceModule):
  
 
         allPossible.normalize()
+        #print max(allPossible, key=allPossible.get)
         self.beliefs = allPossible
 
     def elapseTime(self, gameState):
@@ -232,13 +233,27 @@ class ExactInference(InferenceModule):
         positions after a time update from a particular position.
         """
         "*** YOUR CODE HERE ***"
+        # make a new counter, loop over all possible next actions for each action
+        # ghost's actions will not impact Pacman's beliefs
+        
+        # not utilizing any observations about the ghost, this means that Pacman 
+        # will start with a uniform distribution over all spaces,
+        # and then update his beliefs according to how he knows the Ghost is able to move.
+
+        #newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldPos))
+
+
+
+
+
+
         # the distribution over new positions for the ghost,
         # given its previous position (oldPos) as well as Pacman's current position
     
         # newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldPos))
         # for newPos, prob in newPosDist.items():
 
-        util.raiseNotDefined()
+       # util.raiseNotDefined()
 
     def getBeliefDistribution(self):
         return self.beliefs
@@ -273,16 +288,26 @@ class ParticleFilter(InferenceModule):
         weight with each position) is incorrect and may produce errors.
         """
         "Begin with a uniform distribution over ghost positions."
-        self.particles = [None] * self.numParticles
-      
-        numParticlesPerPos = self.numParticles / len(self.legalPositions)
+        #self.particles = [None] * self.numParticles
+        self.particles = []
+
+        #numParticlesPerPos = self.numParticles / len(self.legalPositions)
        
+        while self.numParticles is not 0:
+       		for pos in self.legalPositions:
+       			self.particles.append(pos)
+       			self.numParticles -= 1
+
+       	
 
         # for all given particles evenly distribute the particles among the legal positions
-        for pos in self.legalPositions:
-        	for particle in range(numParticlesPerPos):
-        		self.particles[particle] = pos 
-        		#self.particles.append(pos)
+        #for pos in self.legalPositions:
+        	#for particle in range(numParticlesPerPos):
+        		#self.particles[particle] = pos 
+        
+       # for particle in range(self.numParticles):
+        
+     		   	#self.particles.append(random.choice(self.legalPositions))
         		
         # self.particles.normalize()
         
@@ -298,7 +323,7 @@ class ParticleFilter(InferenceModule):
         	for pos in self.legalPositions:	
         		
         		self.particles.append(pos)
-"""
+		"""
         #self.particles.normalize()
 
         # downweihgt = old prob * prob(noisy given true given sensor) 
