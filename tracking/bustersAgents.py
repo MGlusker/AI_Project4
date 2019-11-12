@@ -197,7 +197,7 @@ class GreedyBustersAgent(BustersAgent):
 
         for action in legal:
         	# find resulting position for each action
-        	successorPosition = Actions.getSuccessor(closestGhostPos, action)
+        	successorPosition = Actions.getSuccessor(pacmanPosition, action)
 
         	# find distance between successor position and closest ghost
         	currentDist = self.distancer.getDistance(closestGhostPos, successorPosition)
