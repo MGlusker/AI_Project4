@@ -232,7 +232,7 @@ class ExactInference(InferenceModule):
         are used and how they combine to give us a belief distribution over new
         positions after a time update from a particular position.
         """
-        "*** YOUR CODE HERE ***"
+        
         # make a new counter, loop over all possible next actions for each action
         # ghost's actions will not impact Pacman's beliefs
         
@@ -243,8 +243,39 @@ class ExactInference(InferenceModule):
         #newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldPos))
 
 
+        """
+        tempBeliefs = util.Counter()
 
+        for newPos in self.legalPositions:
 
+        	num = 0
+
+        	for oldPos in self.legalPositions:
+
+        		newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldPos))
+
+        		num += self.beliefs[oldPos] * newPosDist[newPos]
+
+        	tempBeliefs[newPos] = num
+
+        tempBeliefs.normalize()
+        self.beliefs = tempBeliefs
+        """
+
+        tempBeliefs = util.Counter()
+
+        for oldPos in self.legalPositions:
+
+        	newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldPos))
+
+        	for newPos, prob in newPosDist.items():
+
+        		tempBeliefs[newPos] += self.beliefs[oldPos] * newPosDist[newPos]
+
+        
+
+        tempBeliefs.normalize()
+        self.beliefs = tempBeliefs
 
 
         # the distribution over new positions for the ghost,
@@ -292,13 +323,18 @@ class ParticleFilter(InferenceModule):
         self.particles = []
 
         #numParticlesPerPos = self.numParticles / len(self.legalPositions)
-       
-        while self.numParticles is not 0:
+        temp = []
+
+        parts = self.numParticles
+
+        while parts is not 0:
        		for pos in self.legalPositions:
        			self.particles.append(pos)
-       			self.numParticles -= 1
+       			parts -= 1
 
-       	
+       	#return self.particles
+       	#q5 sample from particles, exact inference  
+
 
         # for all given particles evenly distribute the particles among the legal positions
         #for pos in self.legalPositions:
@@ -360,12 +396,60 @@ class ParticleFilter(InferenceModule):
         pacmanPosition = gameState.getPacmanPosition()
         "*** YOUR CODE HERE ***"
 
-        allPossible = []
-        # if ghost is eaten place it in jail with a probability of 1
-        if noisyDistance is None:
-        	allPossible[self.getJailPosition()] = 1.0
+        allPossible = util.Counter()
 
-        util.raiseNotDefined()
+        # 1) if ghost is eaten place it in jail with a probability of 1
+        if noisyDistance is None:
+        	#allPossible[self.getJailPosition()] = 1.0
+        	
+        	self.particles = [self.getJailPosition() for p in self.particles]
+        	
+        	#temp = []
+        	#for p in range(len(self.particles)):
+        	#	temp.append(self.getJailPosition())
+        	
+        	#self.particles = temp
+
+
+        else: 
+	        # 2) if all particles have 0 weight, recreate prior distribution
+	        #if allPossible.totalCount() is 0:
+	        #	self.initializeUniformly(gameState)
+
+
+	        currentBeliefs = self.getBeliefDistribution()
+
+	        for p in self.particles:
+	        	# find the true distance to each position 
+	            trueDistance = util.manhattanDistance(p, pacmanPosition)
+
+	            if emissionModel[trueDistance] > 0:
+	               
+	               # let B = belief ghost is in a location, let N = noisyDistance
+	               # probability ghost is in that location given a noisy distance:
+	               # = (prob you're a certain distance away given a belief * prob belief) / prob(noisyDistance)
+	               # P(B|N) = P(N|B)*P(B) / P(N)
+	               # / P(N) is accomplished by .normalize()
+	               # P(B|N) is allPossible, P(N|B) is the emission model, and P(B) is self.beliefs
+
+	              
+
+	               allPossible[p] = emissionModel[trueDistance] * currentBeliefs[p]
+
+	 		# 2) if all particles have 0 weight, recreate prior distribution
+	        if allPossible.totalCount() is 0:
+	        	self.particles = self.initializeUniformly(gameState)
+
+
+	        #allPossible.normalize()
+	    	else: 
+	        	# resample based on my new beliefs / weights
+	        	#self.particles = util.nSample(allPossible.values(), allPossible.keys(), len(self.particles))
+	        	self.particles = util.sample(allPossible.val)
+
+        # downweight = old prob * prob(noisy given true given sensor) 
+
+        #util.raiseNotDefined()
 
     def elapseTime(self, gameState):
         """
@@ -391,8 +475,18 @@ class ParticleFilter(InferenceModule):
         essentially converts a list of particles into a belief distribution (a
         Counter object)
         """
-        "*** YOUR CODE HERE ***"
-        return self.particles
+        
+        # convert list of particles into a counter
+        beliefs = util.Counter(self.particles)
+
+        # count each unique position 
+        for p in self.particles:
+        	beliefs[p] += 1
+        
+        # normalize the count above
+        beliefs.normalize()
+
+        return beliefs
         
 
 class MarginalInference(InferenceModule):
