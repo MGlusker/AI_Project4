@@ -332,6 +332,7 @@ class ParticleFilter(InferenceModule):
        			self.particles.append(pos)
        			parts -= 1
 
+
        	#return self.particles
        	#q5 sample from particles, exact inference  
 
@@ -391,6 +392,7 @@ class ParticleFilter(InferenceModule):
         You may also want to use util.manhattanDistance to calculate the
         distance between a particle and Pacman's position.
         """
+        
         noisyDistance = observation
         emissionModel = busters.getObservationDistribution(noisyDistance)
         pacmanPosition = gameState.getPacmanPosition()
@@ -418,9 +420,10 @@ class ParticleFilter(InferenceModule):
 
 
 	        currentBeliefs = self.getBeliefDistribution()
+	        #print currentBeliefs
 
 	        for p in self.particles:
-	        	# find the true distance to each position 
+	        	# find the true distance to each particle 
 	            trueDistance = util.manhattanDistance(p, pacmanPosition)
 
 	            if emissionModel[trueDistance] > 0:
@@ -444,8 +447,8 @@ class ParticleFilter(InferenceModule):
 	        #allPossible.normalize()
 	    	else: 
 	        	# resample based on my new beliefs / weights
-	        	#self.particles = util.nSample(allPossible.values(), allPossible.keys(), len(self.particles))
-	        	self.particles = util.sample(allPossible.val)
+	        	self.particles = util.nSample(allPossible.values(), allPossible.keys(), len(self.particles))
+	        	#self.particles = util.sample(allPossible)
 
         # downweight = old prob * prob(noisy given true given sensor) 
 
@@ -477,7 +480,8 @@ class ParticleFilter(InferenceModule):
         """
         
         # convert list of particles into a counter
-        beliefs = util.Counter(self.particles)
+        # beliefs = util.Counter(self.particles)
+        beliefs = util.Counter() 
 
         # count each unique position 
         for p in self.particles:
