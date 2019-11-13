@@ -739,7 +739,7 @@ class JointParticleFilter:
             # now loop through and update each entry in newParticle...
 
             "*** YOUR CODE HERE ***"
-            for i, p in enumerate(newParticle, start=1):
+            for i, p in enumerate(newParticle, start=0):
                 
                 newPosDist = getPositionDistributionForGhost(setGhostPositions(gameState, p), i, self.ghostAgents[i])
           
