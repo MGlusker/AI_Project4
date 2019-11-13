@@ -270,7 +270,7 @@ class ExactInference(InferenceModule):
 
         	for newPos, prob in newPosDist.items():
 
-        		tempBeliefs[newPos] += self.beliefs[newPos] * newPosDist[newPos]
+        		tempBeliefs[newPos] += self.beliefs[oldPos] * newPosDist[newPos]
 
         
 
@@ -446,22 +446,35 @@ class ParticleFilter(InferenceModule):
 	               # you want to multiply that number by the number of particles you count, not the proporition of particles
 	               #allPossible[p] = emissionModel[trueDistance] * currentBeliefs[p]
 	               #allPossible[p] += 1
+	               
 	               allPossible[p] = emissionModel[trueDistance] * currentBeliefs[p]
 
 	        #allPossible.normalize()
 
-
+	        print allPossible
 	        # resample using current particles as underlying distribution 
 
 	 		# 2) if all particles have 0 weight, recreate prior distribution
 	        if allPossible.totalCount() is 0:
-	        	self.particles = self.initializeUniformly(gameState)
+	        	self.initializeUniformly(gameState)
 
 
 	        #allPossible.normalize()
 	    	else: 
 	        	# resample based on my new beliefs / weights
-	        	self.particles = util.nSample(allPossible.values(), allPossible.keys(), len(self.particles))
+	        	# find values and keys manually for all possible
+	        	keys = []
+	        	values = [] 
+	        	for key, value in allPossible.items():
+	        		keys.append(key)
+	        		values.append(values)
+
+	        	print keys
+	        	print "hello"
+	        	print values
+
+	        	#self.particles = util.nSample(allPossible.values(), allPossible.keys(), len(self.particles))
+	        	self.particles = util.nSample(values, keys, len(self.particles))
 	        	#self.particles = util.sample(allPossible)
 
         # downweight = old prob * prob(noisy given true given sensor) 
