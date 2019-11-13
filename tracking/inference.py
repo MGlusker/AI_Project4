@@ -580,6 +580,7 @@ class JointParticleFilter:
         a list, edited, and then converted back to a tuple. This is a common
         operation when placing a ghost in jail.
         """
+        
         pacmanPosition = gameState.getPacmanPosition()
         noisyDistances = gameState.getNoisyGhostDistances()
         if len(noisyDistances) < self.numGhosts:
@@ -588,19 +589,22 @@ class JointParticleFilter:
 
         "*** YOUR CODE HERE ***"
 
-        pacmanPosition = gameState.getPacmanPosition()
-
+        
         
         allPossible = util.Counter()
         
+
+        # loop through all ghosts
         for i in range(self.numGhosts):
+			
 			# 1) if ghost is eaten place it in jail with a probability of 1
-		    if noisyDistance == None:
+		    if noisyDistances[i] == None:
 
 		    	temp = []
 
-		    	for p in range(len(self.particles)):
-		    		temp.append(self.getJailPosition())
+		    	for p in self.particles:
+		    		temp.append(self.getParticleWithGhostInJail(p, i))
+		    		#temp.append(self.getJailPosition())
 
 		    	self.particles = temp
 
@@ -612,20 +616,24 @@ class JointParticleFilter:
 		    	
 		    	for p in self.particles:
 
-		    		# find the true distance from pacman to each particle 
-		    		trueDistance = util.manhattanDistance(p, pacmanPosition)
+		    		# find the true distance from pacman to each ghost 
+		    		trueDistance = 0 
+		    		for num in p:
+		    			trueDistance += util.manhattanDistance(num, pacmanPosition)
 
-		    		if emissionModel[trueDistance] > 0:
+		    		#trueDistance = util.manhattanDistance(p[i], pacmanPosition)
+
+		    		if emissionModels[i][trueDistance] > 0:
 
 		    			# weight each particle by the probability of getting to that position (use emission model)
 		    			# account for our current belief distribution (evidence) at this point in time
-		    			allPossible[p] = emissionModel[trueDistance] * currentBeliefs[p]
+		    			allPossible[p] = emissionModels[i][trueDistance] * currentBeliefs[p]
 
 		    	
 		    	# 2) if all particles have 0 weight, recreate prior distribution
 		    	if allPossible.totalCount() == 0:
 		    		
-		    		self.initializeParticles(gameState)
+		    		self.initializeParticles()
 
 
 		    	# otherwise, go ahead and resample based on our new beliefs 
@@ -642,6 +650,8 @@ class JointParticleFilter:
 
 		    		# resample self.particles
 		    		self.particles = util.nSample(values, keys, self.numParticles)
+
+
 
     def getParticleWithGhostInJail(self, particle, ghostIndex):
         """
