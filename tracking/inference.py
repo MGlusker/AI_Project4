@@ -739,9 +739,15 @@ class JointParticleFilter:
             # now loop through and update each entry in newParticle...
 
             "*** YOUR CODE HERE ***"
+            for i, p in enumerate(newParticle, start=1):
+                
+                newPosDist = getPositionDistributionForGhost(setGhostPositions(gameState, p), i, self.ghostAgents[i])
+          
+                newParticle = util.sample(newPosDist)
 
             "*** END YOUR CODE HERE ***"
             newParticles.append(tuple(newParticle))
+        
         self.particles = newParticles
 
     def getBeliefDistribution(self):
