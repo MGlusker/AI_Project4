@@ -393,93 +393,51 @@ class ParticleFilter(InferenceModule):
         You may also want to use util.manhattanDistance to calculate the
         distance between a particle and Pacman's position.
         """
-        
         noisyDistance = observation
         emissionModel = busters.getObservationDistribution(noisyDistance)
         pacmanPosition = gameState.getPacmanPosition()
-        "*** YOUR CODE HERE ***"
 
         allPossible = util.Counter()
 
-        # 1) if ghost is eaten place it in jail with a probability of 1
         if noisyDistance is None:
+
+        	temp = []
+
+        	for p in range(len(self.particles)):
+        		temp.append(self.getJailPosition())
+
+        	self.particles = temp
+
+        else:
+
+        	currentBeliefs = self.getBeliefDistribution()
+
+        	for p in self.particles:
+
+        		trueDistance = util.manhattanDistance(p, pacmanPosition)
+
+        		if emissionModel[trueDistance] > 0:
+
+        			allPossible[p] = emissionModel[trueDistance] * currentBeliefs[p]
+
         	
-        	
-        	self.particles = [self.getJailPosition() for p in self.particles]
-        	
-        	#temp = []
-        	#for p in range(len(self.particles)):
-        	#	temp.append(self.getJailPosition())
-        	
-        	#self.particles = temp
+        	if allPossible.totalCount() is 0:
 
+        		self.initializeUniformly(gameState)
 
-        else: 
-	        # 2) if all particles have 0 weight, recreate prior distribution
-	        #if allPossible.totalCount() is 0:
-	        #	self.initializeUniformly(gameState)
+        	else:
 
+        		keys = []
+        		values = []
 
-	        # weight each particle based on evidence 
+        		for key, value in allPossible.items():
 
-	        currentBeliefs = self.getBeliefDistribution()
-	        #print currentBeliefs
+        			keys.append(key)
+        			values.append(value)
 
-	        for p in self.particles:
-	        	# find the true distance to each particle 
-	            trueDistance = util.manhattanDistance(p, pacmanPosition)
+        		newParticles = util.nSample(values, keys, self.numParticles)
 
-
-
-	            if emissionModel[trueDistance] > 0:
-	               
-	               # let B = belief ghost is in a location, let N = noisyDistance
-	               # probability ghost is in that location given a noisy distance:
-	               # = (prob you're a certain distance away given a belief * prob belief) / prob(noisyDistance)
-	               # P(B|N) = P(N|B)*P(B) / P(N)
-	               # / P(N) is accomplished by .normalize()
-	               # P(B|N) is allPossible, P(N|B) is the emission model, and P(B) is self.beliefs
-
-	              
-
-	               # emission model tells you the prob (ex 0.9, 0.7, 0.1)
-	               # you want to multiply that number by the number of particles you count, not the proporition of particles
-	               #allPossible[p] = emissionModel[trueDistance] * currentBeliefs[p]
-	               #allPossible[p] += 1
-	               
-	               allPossible[p] = emissionModel[trueDistance] * currentBeliefs[p]
-
-	        #allPossible.normalize()
-
-	        print allPossible
-	        # resample using current particles as underlying distribution 
-
-	 		# 2) if all particles have 0 weight, recreate prior distribution
-	        if allPossible.totalCount() is 0:
-	        	self.initializeUniformly(gameState)
-
-
-	        #allPossible.normalize()
-	    	else: 
-	        	# resample based on my new beliefs / weights
-	        	# find values and keys manually for all possible
-	        	keys = []
-	        	values = [] 
-	        	for key, value in allPossible.items():
-	        		keys.append(key)
-	        		values.append(values)
-
-	        	print keys
-	        	print "hello"
-	        	print values
-
-	        	#self.particles = util.nSample(allPossible.values(), allPossible.keys(), len(self.particles))
-	        	self.particles = util.nSample(values, keys, len(self.particles))
-	        	#self.particles = util.sample(allPossible)
-
-        # downweight = old prob * prob(noisy given true given sensor) 
-
-        #util.raiseNotDefined()
+        		self.particles = newParticles
 
     def elapseTime(self, gameState):
         """
@@ -499,6 +457,17 @@ class ParticleFilter(InferenceModule):
         # in the elpase time you're taking the resampled particles, and using the same transition model (every time)
         # to randomly flip coins and reassign particles to various positions 
         "*** YOUR CODE HERE ***"
+
+        tempParticles = []
+
+        for particle in self.particles:
+
+        	newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, particle))
+
+        	tempParticles.append(util.sample(newPosDist))
+
+       
+        self.particles = tempParticles
 
 
         #util.raiseNotDefined()
