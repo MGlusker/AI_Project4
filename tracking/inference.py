@@ -270,7 +270,7 @@ class ExactInference(InferenceModule):
 
         	for newPos, prob in newPosDist.items():
 
-        		tempBeliefs[newPos] += self.beliefs[oldPos] * newPosDist[newPos]
+        		tempBeliefs[newPos] += self.beliefs[newPos] * newPosDist[newPos]
 
         
 
@@ -366,6 +366,7 @@ class ParticleFilter(InferenceModule):
         # downweihgt = old prob * prob(noisy given true given sensor) 
 
     def observe(self, observation, gameState):
+
         """
         Update beliefs based on the given distance observation. Make sure to
         handle the special case where all particles have weight 0 after
@@ -402,7 +403,7 @@ class ParticleFilter(InferenceModule):
 
         # 1) if ghost is eaten place it in jail with a probability of 1
         if noisyDistance is None:
-        	#allPossible[self.getJailPosition()] = 1.0
+        	
         	
         	self.particles = [self.getJailPosition() for p in self.particles]
         	
@@ -419,12 +420,16 @@ class ParticleFilter(InferenceModule):
 	        #	self.initializeUniformly(gameState)
 
 
+	        # weight each particle based on evidence 
+
 	        currentBeliefs = self.getBeliefDistribution()
 	        #print currentBeliefs
 
 	        for p in self.particles:
 	        	# find the true distance to each particle 
 	            trueDistance = util.manhattanDistance(p, pacmanPosition)
+
+
 
 	            if emissionModel[trueDistance] > 0:
 	               
@@ -437,7 +442,16 @@ class ParticleFilter(InferenceModule):
 
 	              
 
+	               # emission model tells you the prob (ex 0.9, 0.7, 0.1)
+	               # you want to multiply that number by the number of particles you count, not the proporition of particles
+	               #allPossible[p] = emissionModel[trueDistance] * currentBeliefs[p]
+	               #allPossible[p] += 1
 	               allPossible[p] = emissionModel[trueDistance] * currentBeliefs[p]
+
+	        #allPossible.normalize()
+
+
+	        # resample using current particles as underlying distribution 
 
 	 		# 2) if all particles have 0 weight, recreate prior distribution
 	        if allPossible.totalCount() is 0:
@@ -468,8 +482,13 @@ class ParticleFilter(InferenceModule):
         util.sample(Counter object) is a helper method to generate a sample from
         a belief distribution.
         """
+
+        # in the elpase time you're taking the resampled particles, and using the same transition model (every time)
+        # to randomly flip coins and reassign particles to various positions 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+
+        #util.raiseNotDefined()
 
     def getBeliefDistribution(self):
         """
