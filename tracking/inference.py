@@ -320,6 +320,7 @@ class ParticleFilter(InferenceModule):
         """
         "Begin with a uniform distribution over ghost positions."
         #self.particles = [None] * self.numParticles
+       
         self.particles = []
 
         #numParticlesPerPos = self.numParticles / len(self.legalPositions)
@@ -327,10 +328,13 @@ class ParticleFilter(InferenceModule):
 
         parts = self.numParticles
 
-        while parts is not 0:
+        while parts > 0:
        		for pos in self.legalPositions:
-       			self.particles.append(pos)
+       			temp.append(pos)
        			parts -= 1
+
+       	self.particles = temp
+       
 
 
        	#return self.particles
@@ -398,8 +402,9 @@ class ParticleFilter(InferenceModule):
         pacmanPosition = gameState.getPacmanPosition()
 
         allPossible = util.Counter()
-
-        if noisyDistance is None:
+        
+		# 1) if ghost is eaten place it in jail with a probability of 1
+        if noisyDistance == None:
 
         	temp = []
 
@@ -408,10 +413,11 @@ class ParticleFilter(InferenceModule):
 
         	self.particles = temp
 
+        # otherwise go ahead
         else:
 
         	currentBeliefs = self.getBeliefDistribution()
-
+        	
         	for p in self.particles:
 
         		trueDistance = util.manhattanDistance(p, pacmanPosition)
@@ -421,12 +427,12 @@ class ParticleFilter(InferenceModule):
         			allPossible[p] = emissionModel[trueDistance] * currentBeliefs[p]
 
         	
-        	if allPossible.totalCount() is 0:
-
+        	if allPossible.totalCount() == 0:
+        		
         		self.initializeUniformly(gameState)
 
         	else:
-
+        		
         		keys = []
         		values = []
 
