@@ -589,12 +589,9 @@ class JointParticleFilter:
             return
 
         emissionModels = [busters.getObservationDistribution(dist) for dist in noisyDistances]
-
-
-
         
         
-        allPossible = util.Counter()
+        particleWeights = []
         
 
         currentBeliefs = self.getBeliefDistribution()
@@ -602,6 +599,7 @@ class JointParticleFilter:
         #weighting the particles
         for p in self.particles:
 
+            listOfLocationWeights = []
             # loop through all ghosts
             for i in range(self.numGhosts):
 
@@ -609,28 +607,38 @@ class JointParticleFilter:
                 if noisyDistances[i] == None:
                     p = self.getParticleWithGhostInJail(p, i)
 
+                else:
 
-                # find the true distance from pacman to the current ghost that we're iterating through
-                trueDistance = util.manhattanDistance(p[i], pacmanPosition)
+                    # find the true distance from pacman to the current ghost that we're iterating through
+                    trueDistance = util.manhattanDistance(p[i], pacmanPosition)
 
-                listOfLocationWeights = []
+                   
 
-                #print emissionModels[i][trueDistance] > 0
-                if emissionModels[i][trueDistance] > 0:
+                    #print emissionModels[i][trueDistance] > 0
+                    if emissionModels[i][trueDistance] > 0:
 
-                    # weight each particle by the probability of getting to that position (use emission model)
-                    # account for our current belief distribution (evidence) at this point in time
-                    listOfLocationWeights.append(emissionModels[i][trueDistance] * currentBeliefs[p])
+                        # weight each particle by the probability of getting to that position (use emission model)
+                        # account for our current belief distribution (evidence) at this point in time
+                        listOfLocationWeights.append(emissionModels[i][trueDistance] * currentBeliefs[p])
 
             if len(listOfLocationWeights) != 0:
-                allPossible[p] = functools.reduce(lambda x,y: x*y, listOfLocationWeights)
+                particleWeights.append(functools.reduce(lambda x,y: x*y, listOfLocationWeights))
             else: 
-                allPossible[p] = 0
+                particleWeights.append(0)
 
-        
+
+
+        particleDictionary = util.Counter()
+
+        for i in range(self.numParticles): 
+            particleDictionary[self.particles[i]] += particleWeights[i]
+
+
+        particleDictionary.normalize() 
+
+
         # 2) if all particles have 0 weight, recreate prior distribution
-        if allPossible.totalCount() == 0:
-            
+        if particleDictionary.totalCount() == 0:
             self.initializeParticles()
 
 
@@ -641,7 +649,7 @@ class JointParticleFilter:
             values = []
 
             # find each key, value pair in our counter
-            for key, value in allPossible.items():
+            for key, value in particleDictionary.items():
 
                 keys.append(key)
                 values.append(value)
