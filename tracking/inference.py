@@ -154,12 +154,12 @@ class ExactInference(InferenceModule):
 
         # if ghost is eaten place it in jail with a probability of 1
         if noisyDistance is None:
-        	allPossible[self.getJailPosition()] = 1.0
+            allPossible[self.getJailPosition()] = 1.0
     
 
         # for all legal ghost positions
         for p in self.legalPositions:
-        	# find the true distance to each position 
+            # find the true distance to each position 
             trueDistance = util.manhattanDistance(p, pacmanPosition)
 
             if emissionModel[trueDistance] > 0:
@@ -245,11 +245,11 @@ class ExactInference(InferenceModule):
 
         for oldPos in self.legalPositions:
 
-        	newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldPos))
+            newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldPos))
 
-        	for newPos, prob in newPosDist.items():
+            for newPos, prob in newPosDist.items():
 
-        		tempBeliefs[newPos] += self.beliefs[oldPos] * newPosDist[newPos]
+                tempBeliefs[newPos] += self.beliefs[oldPos] * newPosDist[newPos]
 
         
 
@@ -299,11 +299,11 @@ class ParticleFilter(InferenceModule):
 
         
         while parts > 0:
-       		for pos in self.legalPositions:
-       			
-       			self.particles.append(pos)
-       			parts -= 1
-		
+            for pos in self.legalPositions:
+                
+                self.particles.append(pos)
+                parts -= 1
+        
 
        
        
@@ -341,54 +341,54 @@ class ParticleFilter(InferenceModule):
 
         allPossible = util.Counter()
         
-		# 1) if ghost is eaten place it in jail with a probability of 1
+        # 1) if ghost is eaten place it in jail with a probability of 1
         if noisyDistance == None:
 
-        	temp = []
+            temp = []
 
-        	for p in range(len(self.particles)):
-        		temp.append(self.getJailPosition())
+            for p in range(len(self.particles)):
+                temp.append(self.getJailPosition())
 
-        	self.particles = temp
+            self.particles = temp
 
 
         # otherwise go ahead ahead and create our counter
         else:
 
-        	currentBeliefs = self.getBeliefDistribution()
-        	
-        	for p in self.particles:
+            currentBeliefs = self.getBeliefDistribution()
+            
+            for p in self.particles:
 
-        		# find the true distance from pacman to each particle 
-        		trueDistance = util.manhattanDistance(p, pacmanPosition)
+                # find the true distance from pacman to each particle 
+                trueDistance = util.manhattanDistance(p, pacmanPosition)
 
-        		if emissionModel[trueDistance] > 0:
+                if emissionModel[trueDistance] > 0:
 
-        			# weight each particle by the probability of getting to that position (use emission model)
-        			# account for our current belief distribution (evidence) at this point in time
-        			allPossible[p] = emissionModel[trueDistance] * currentBeliefs[p]
+                    # weight each particle by the probability of getting to that position (use emission model)
+                    # account for our current belief distribution (evidence) at this point in time
+                    allPossible[p] = emissionModel[trueDistance] * currentBeliefs[p]
 
-        	
-        	# 2) if all particles have 0 weight, recreate prior distribution
-        	if allPossible.totalCount() == 0:
-        		
-        		self.initializeUniformly(gameState)
+            
+            # 2) if all particles have 0 weight, recreate prior distribution
+            if allPossible.totalCount() == 0:
+                
+                self.initializeUniformly(gameState)
 
 
-        	# otherwise, go ahead and resample based on our new beliefs 
-        	else:
-        		
-        		keys = []
-        		values = []
+            # otherwise, go ahead and resample based on our new beliefs 
+            else:
+                
+                keys = []
+                values = []
 
-        		# find each key, value pair in our counter
-        		for key, value in allPossible.items():
+                # find each key, value pair in our counter
+                for key, value in allPossible.items():
 
-        			keys.append(key)
-        			values.append(value)
+                    keys.append(key)
+                    values.append(value)
 
-        		# resample self.particles
-        		self.particles = util.nSample(values, keys, self.numParticles)
+                # resample self.particles
+                self.particles = util.nSample(values, keys, self.numParticles)
 
 
     def elapseTime(self, gameState):
@@ -414,10 +414,10 @@ class ParticleFilter(InferenceModule):
 
         for particle in self.particles:
 
-        	newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, particle))
+            newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, particle))
 
-        	# sample from each positition distribution (which is obtained for each particle)
-        	tempParticles.append(util.sample(newPosDist))
+            # sample from each positition distribution (which is obtained for each particle)
+            tempParticles.append(util.sample(newPosDist))
 
        
         self.particles = tempParticles
@@ -437,7 +437,7 @@ class ParticleFilter(InferenceModule):
 
         # count each unique position 
         for p in self.particles:
-        	beliefs[p] += 1
+            beliefs[p] += 1
         
         # normalize the count above
         beliefs.normalize()
@@ -525,20 +525,20 @@ class JointParticleFilter:
         # randomize permutations
         random.shuffle(possiblePositions)
 
-      	
-      	parts = self.numParticles
+        
+        parts = self.numParticles
         
         while parts > 0:
-       		for pos in possiblePositions:
-       			
-       			self.particles.append(pos)
-       			parts -= 1
-       		
-       	
-       	"""
-       	for p in range(self.numParticles):
-       		self.particles.append((random.choice(possiblePositions)))
-		"""
+            for pos in possiblePositions:
+                
+                self.particles.append(pos)
+                parts -= 1
+            
+        
+        """
+        for p in range(self.numParticles):
+            self.particles.append((random.choice(possiblePositions)))
+        """
        
 
     def addGhostAgent(self, agent):
@@ -580,73 +580,74 @@ class JointParticleFilter:
         a list, edited, and then converted back to a tuple. This is a common
         operation when placing a ghost in jail.
         """
-        
+        import functools
+
         pacmanPosition = gameState.getPacmanPosition()
         noisyDistances = gameState.getNoisyGhostDistances()
+
         if len(noisyDistances) < self.numGhosts:
             return
+
         emissionModels = [busters.getObservationDistribution(dist) for dist in noisyDistances]
 
-        "*** YOUR CODE HERE ***"
+
 
         
         
         allPossible = util.Counter()
         
 
-        # loop through all ghosts
-        for i in range(self.numGhosts):
-			
-			# 1) if ghost is eaten place it in jail with a probability of 1
-		    if noisyDistances[i] == None:
+        currentBeliefs = self.getBeliefDistribution()
 
-		    	temp = []
+        #weighting the particles
+        for p in self.particles:
 
-		    	for p in self.particles:
-		    		temp.append(self.getParticleWithGhostInJail(p, i))
-		    		#temp.append(self.getJailPosition())
+            # loop through all ghosts
+            for i in range(self.numGhosts):
 
-		    	self.particles = temp
+                #if ghost is eaten place it in jail with a probability of 1
+                if noisyDistances[i] == None:
+                    p = self.getParticleWithGhostInJail(p, i)
 
 
-		    # otherwise go ahead ahead and create our counter
-		    else:
+                # find the true distance from pacman to the current ghost that we're iterating through
+                trueDistance = util.manhattanDistance(p[i], pacmanPosition)
 
-		    	currentBeliefs = self.getBeliefDistribution()
-		    	
-		    	for p in self.particles:
+                listOfLocationWeights = []
 
-		    		# find the true distance from pacman to the current ghost that we're iterating through
-		    		trueDistance = util.manhattanDistance(p[i], pacmanPosition)
+                #print emissionModels[i][trueDistance] > 0
+                if emissionModels[i][trueDistance] > 0:
+
+                    # weight each particle by the probability of getting to that position (use emission model)
+                    # account for our current belief distribution (evidence) at this point in time
+                    listOfLocationWeights.append(emissionModels[i][trueDistance] * currentBeliefs[p])
+
+            if len(listOfLocationWeights) != 0:
+                allPossible[p] = functools.reduce(lambda x,y: x*y, listOfLocationWeights)
+            else: 
+                allPossible[p] = 0
+
+        
+        # 2) if all particles have 0 weight, recreate prior distribution
+        if allPossible.totalCount() == 0:
+            
+            self.initializeParticles()
 
 
-		    		if emissionModels[i][trueDistance] > 0:
+        # otherwise, go ahead and resample based on our new beliefs 
+        else:
+            
+            keys = []
+            values = []
 
-		    			# weight each particle by the probability of getting to that position (use emission model)
-		    			# account for our current belief distribution (evidence) at this point in time
-		    			allPossible[p] = emissionModels[i][trueDistance] * currentBeliefs[p]
+            # find each key, value pair in our counter
+            for key, value in allPossible.items():
 
-		    	
-		    	# 2) if all particles have 0 weight, recreate prior distribution
-		    	if allPossible.totalCount() == 0:
-		    		
-		    		self.initializeParticles()
+                keys.append(key)
+                values.append(value)
 
-
-		    	# otherwise, go ahead and resample based on our new beliefs 
-		    	else:
-		    		
-		    		keys = []
-		    		values = []
-
-		    		# find each key, value pair in our counter
-		    		for key, value in allPossible.items():
-
-		    			keys.append(key)
-		    			values.append(value)
-
-		    		# resample self.particles
-		    		self.particles = util.nSample(values, keys, self.numParticles)
+            # resample self.particles
+            self.particles = util.nSample(values, keys, self.numParticles)
 
 
 
@@ -722,7 +723,7 @@ class JointParticleFilter:
 
         # count each unique position 
         for p in self.particles:
-        	beliefs[p] += 1
+            beliefs[p] += 1
         
         # normalize the count above
         beliefs.normalize()
