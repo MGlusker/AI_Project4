@@ -528,18 +528,10 @@ class JointParticleFilter:
         
         parts = self.numParticles
         
-        while parts > 0:
-            for pos in possiblePositions:
-                
-                self.particles.append(pos)
-                parts -= 1
-            
-        
-        """
-        for p in range(self.numParticles):
-            self.particles.append((random.choice(possiblePositions)))
-        """
-       
+        length= len(possiblePositions)
+
+        for i in range(parts):
+            self.particles.append(possiblePositions[i%length])
 
     def addGhostAgent(self, agent):
         """
@@ -592,12 +584,10 @@ class JointParticleFilter:
         
         
         particleWeights = []
-        
-        currentBeliefs = self.getBeliefDistribution()
+
 
         #if ghost is eaten place it in jail with a probability of 1
         for p in self.particles:
-
             for i in range(self.numGhosts):
                 if noisyDistances[i] == None:
                         p = self.getParticleWithGhostInJail(p, i)
@@ -635,22 +625,32 @@ class JointParticleFilter:
                 particleWeights.append(0)
 
 
+        for p in self.particles:
+                for i in range(self.numGhosts):
+                    if noisyDistances[i] == None:
+                        p = self.getParticleWithGhostInJail(p, i)
 
         particleDictionary = util.Counter()
+
+        print "numParticles", self.numParticles
 
         for i in range(self.numParticles): 
             particleDictionary[self.particles[i]] += particleWeights[i]
 
 
-        #particleDictionary.normalize() 
+        particleDictionary.normalize() 
 
 
 
 
         # 2) if all particles have 0 weight, recreate prior distribution
+        #print particleDictionary.totalCount() == 0
+        
         if particleDictionary.totalCount() == 0:
+            print len(self.particles)
 
             self.initializeParticles()
+            print len(self.particles)  , "after"
 
             for p in self.particles:
                 for i in range(self.numGhosts):
@@ -665,7 +665,7 @@ class JointParticleFilter:
             values = []
 
             # find each key, value pair in our counter
-            #keys, values = particleDictionary.items()
+            #keys, values = zip(*particleDictionary.items())
             for key, value in particleDictionary.items():
 
                 keys.append(key)
