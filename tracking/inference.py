@@ -616,12 +616,9 @@ class JointParticleFilter:
 		    	
 		    	for p in self.particles:
 
-		    		# find the true distance from pacman to each ghost 
-		    		trueDistance = 0 
-		    		for num in p:
-		    			trueDistance += util.manhattanDistance(num, pacmanPosition)
+		    		# find the true distance from pacman to the current ghost that we're iterating through
+		    		trueDistance = util.manhattanDistance(p[i], pacmanPosition)
 
-		    		#trueDistance = util.manhattanDistance(p[i], pacmanPosition)
 
 		    		if emissionModels[i][trueDistance] > 0:
 
