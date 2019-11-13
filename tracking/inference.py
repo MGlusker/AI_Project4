@@ -240,27 +240,6 @@ class ExactInference(InferenceModule):
         # will start with a uniform distribution over all spaces,
         # and then update his beliefs according to how he knows the Ghost is able to move.
 
-        #newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldPos))
-
-
-        """
-        tempBeliefs = util.Counter()
-
-        for newPos in self.legalPositions:
-
-        	num = 0
-
-        	for oldPos in self.legalPositions:
-
-        		newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldPos))
-
-        		num += self.beliefs[oldPos] * newPosDist[newPos]
-
-        	tempBeliefs[newPos] = num
-
-        tempBeliefs.normalize()
-        self.beliefs = tempBeliefs
-        """
 
         tempBeliefs = util.Counter()
 
@@ -278,13 +257,6 @@ class ExactInference(InferenceModule):
         self.beliefs = tempBeliefs
 
 
-        # the distribution over new positions for the ghost,
-        # given its previous position (oldPos) as well as Pacman's current position
-    
-        # newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldPos))
-        # for newPos, prob in newPosDist.items():
-
-       # util.raiseNotDefined()
 
     def getBeliefDistribution(self):
         return self.beliefs
@@ -319,55 +291,21 @@ class ParticleFilter(InferenceModule):
         weight with each position) is incorrect and may produce errors.
         """
         "Begin with a uniform distribution over ghost positions."
-        #self.particles = [None] * self.numParticles
+        
        
         self.particles = []
-
-        #numParticlesPerPos = self.numParticles / len(self.legalPositions)
-        temp = []
 
         parts = self.numParticles
 
         while parts > 0:
        		for pos in self.legalPositions:
-       			temp.append(pos)
+       			
+       			self.particles.append(pos)
        			parts -= 1
 
-       	self.particles = temp
+       
        
 
-
-       	#return self.particles
-       	#q5 sample from particles, exact inference  
-
-
-        # for all given particles evenly distribute the particles among the legal positions
-        #for pos in self.legalPositions:
-        	#for particle in range(numParticlesPerPos):
-        		#self.particles[particle] = pos 
-        
-       # for particle in range(self.numParticles):
-        
-     		   	#self.particles.append(random.choice(self.legalPositions))
-        		
-        # self.particles.normalize()
-        
-     
-
-     	# they all have a weight of 1, the list should contain the coordinates of each particle
-		#for particle in self.numParticles:
-		#	particles.append()
-
-
-		#self.particles[(1,1), (1,2)]
-        """for particle in range(numParticlesPerPos):
-        	for pos in self.legalPositions:	
-        		
-        		self.particles.append(pos)
-		"""
-        #self.particles.normalize()
-
-        # downweihgt = old prob * prob(noisy given true given sensor) 
 
     def observe(self, observation, gameState):
 
@@ -413,37 +351,45 @@ class ParticleFilter(InferenceModule):
 
         	self.particles = temp
 
-        # otherwise go ahead
+
+        # otherwise go ahead ahead and create our counter
         else:
 
         	currentBeliefs = self.getBeliefDistribution()
         	
         	for p in self.particles:
 
+        		# find the true distance from pacman to each particle 
         		trueDistance = util.manhattanDistance(p, pacmanPosition)
 
         		if emissionModel[trueDistance] > 0:
 
+        			# weight each particle by the probability of getting to that position (use emission model)
+        			# account for our current belief distribution (evidence) at this point in time
         			allPossible[p] = emissionModel[trueDistance] * currentBeliefs[p]
 
         	
+        	# 2) if all particles have 0 weight, recreate prior distribution
         	if allPossible.totalCount() == 0:
         		
         		self.initializeUniformly(gameState)
 
+
+        	# otherwise, go ahead and resample based on our new beliefs 
         	else:
         		
         		keys = []
         		values = []
 
+        		# find each key, value pair in our counter
         		for key, value in allPossible.items():
 
         			keys.append(key)
         			values.append(value)
 
-        		newParticles = util.nSample(values, keys, self.numParticles)
+        		# resample self.particles
+        		self.particles = util.nSample(values, keys, self.numParticles)
 
-        		self.particles = newParticles
 
     def elapseTime(self, gameState):
         """
@@ -460,9 +406,9 @@ class ParticleFilter(InferenceModule):
         a belief distribution.
         """
 
-        # in the elpase time you're taking the resampled particles, and using the same transition model (every time)
+        # in the elapse time you're taking the resampled particles, and using the same transition model (every time)
         # to randomly flip coins and reassign particles to various positions 
-        "*** YOUR CODE HERE ***"
+       
 
         tempParticles = []
 
@@ -470,13 +416,12 @@ class ParticleFilter(InferenceModule):
 
         	newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, particle))
 
+        	# sample from each positition distribution (which is obtained for each particle)
         	tempParticles.append(util.sample(newPosDist))
 
        
         self.particles = tempParticles
 
-
-        #util.raiseNotDefined()
 
     def getBeliefDistribution(self):
         """
