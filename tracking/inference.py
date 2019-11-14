@@ -550,6 +550,14 @@ class JointParticleFilter:
     def getJailPosition(self, i):
         return (2 * i + 1, 1);
 
+    def doJailCheck(self, noisyDistances):
+    	#if ghost is eaten place it in jail with a probability of 1
+        
+        for p in self.particles:
+           for i in range(self.numGhosts):
+               if noisyDistances[i] == None:
+                       p = self.getParticleWithGhostInJail(p, i)
+
     def observeState(self, gameState):
         """
         Resamples the set of particles using the likelihood of the noisy
@@ -594,10 +602,12 @@ class JointParticleFilter:
 
 
         #if ghost is eaten place it in jail with a probability of 1
-        for p in self.particles:
-            for i in range(self.numGhosts):
-                if noisyDistances[i] == None:
-                        p = self.getParticleWithGhostInJail(p, i)
+        #for p in self.particles:
+        #    for i in range(self.numGhosts):
+        #        if noisyDistances[i] == None:
+        #                p = self.getParticleWithGhostInJail(p, i)
+        
+        self.doJailCheck(noisyDistances)
 
         
         #weighting the particles
@@ -608,11 +618,11 @@ class JointParticleFilter:
             for i in range(self.numGhosts):
 
                 
-                # if noisyDistances[i] == None:
-                #     #pass
-                #     p = self.getParticleWithGhostInJail(p, i)
+                #if noisyDistances[i] == None:
+                     #pass
+                #    p = self.getParticleWithGhostInJail(p, i)
 
-                # else:
+                #else:
 
                 # find the true distance from pacman to the current ghost that we're iterating through
                 trueDistance = util.manhattanDistance(p[i], pacmanPosition)
@@ -626,25 +636,28 @@ class JointParticleFilter:
                     # account for our current belief distribution (evidence) at this point in time
                 listOfLocationWeights.append(emissionModels[i][trueDistance]) #* currentBeliefs[p])
 
+         
+           
             #if len(listOfLocationWeights) != 0:
             particleWeights.append(functools.reduce(lambda x,y: x*y, listOfLocationWeights))
+
+
             #else: 
             #    print "?"
             #    particleWeights.append(0)
 
 
         # do jail check again     
-        for p in self.particles:
-                for i in range(self.numGhosts):
-                    if noisyDistances[i] == None:
-                        p = self.getParticleWithGhostInJail(p, i)
+        #self.doJailCheck(noisyDistances)
 
+        
+        # now create a counter and count up the particle weights observed
         particleDictionary = util.Counter()
 
-        #print "numParticles", self.numParticles
-
-        for i in range(self.numParticles): 
-            particleDictionary[self.particles[i]] += particleWeights[i]
+        #for i in range(self.numParticles): 
+        for index, p in enumerate(self.particles):
+            #particleDictionary[self.particles[i]] += particleWeights[i]
+            particleDictionary[p] += particleWeights[index]
 
 
         particleDictionary.normalize() 
@@ -660,12 +673,12 @@ class JointParticleFilter:
 
             self.initializeParticles()
             #print len(self.particles)  , "after"
-
+            self.doJailCheck(noisyDistances)
             # check for ghosts again
-            for p in self.particles:
-                for i in range(self.numGhosts):
-                    if noisyDistances[i] == None:
-                        p = self.getParticleWithGhostInJail(p, i)
+            # for p in self.particles:
+            #     for i in range(self.numGhosts):
+            #         if noisyDistances[i] == None:
+            #             p = self.getParticleWithGhostInJail(p, i)
 
 
         # otherwise, go ahead and resample based on our new beliefs 
@@ -675,19 +688,20 @@ class JointParticleFilter:
             values = []
 
             # find each key, value pair in our counter
-            #keys, values = zip(*particleDictionary.items())
-            for key, value in particleDictionary.items():
+            keys, values = zip(*particleDictionary.items())
+            #for key, value in particleDictionary.items():
 
-                keys.append(key)
-                values.append(value)
+            #    keys.append(key)
+            #    values.append(value)
 
             # resample self.particles
             self.particles = util.nSample(values, keys, self.numParticles)
 
-            for p in self.particles:
-		            for i in range(self.numGhosts):
-		                if noisyDistances[i] == None:
-		                        p = self.getParticleWithGhostInJail(p, i)
+            self.doJailCheck(noisyDistances)
+            # for p in self.particles:
+		          #   for i in range(self.numGhosts):
+		          #       if noisyDistances[i] == None:
+		          #               p = self.getParticleWithGhostInJail(p, i)
 
 		    
 
