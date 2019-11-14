@@ -528,10 +528,12 @@ class JointParticleFilter:
         
         parts = self.numParticles
         
-        length= len(possiblePositions)
+        length = len(possiblePositions)
 
         for i in range(parts):
             self.particles.append(possiblePositions[i%length])
+
+
 
     def addGhostAgent(self, agent):
         """
@@ -592,6 +594,7 @@ class JointParticleFilter:
                 if noisyDistances[i] == None:
                         p = self.getParticleWithGhostInJail(p, i)
 
+        
         #weighting the particles
         for p in self.particles:
 
@@ -616,15 +619,16 @@ class JointParticleFilter:
 
                     # weight each particle by the probability of getting to that position (use emission model)
                     # account for our current belief distribution (evidence) at this point in time
-                listOfLocationWeights.append(emissionModels[i][trueDistance] )#* currentBeliefs[p])
+                listOfLocationWeights.append(emissionModels[i][trueDistance]) #* currentBeliefs[p])
 
-            if len(listOfLocationWeights) != 0:
-                particleWeights.append(functools.reduce(lambda x,y: x*y, listOfLocationWeights))
-            else: 
-                print "?"
-                particleWeights.append(0)
+            #if len(listOfLocationWeights) != 0:
+            particleWeights.append(functools.reduce(lambda x,y: x*y, listOfLocationWeights))
+            #else: 
+            #    print "?"
+            #    particleWeights.append(0)
 
 
+        # do jail check again     
         for p in self.particles:
                 for i in range(self.numGhosts):
                     if noisyDistances[i] == None:
@@ -632,7 +636,7 @@ class JointParticleFilter:
 
         particleDictionary = util.Counter()
 
-        print "numParticles", self.numParticles
+        #print "numParticles", self.numParticles
 
         for i in range(self.numParticles): 
             particleDictionary[self.particles[i]] += particleWeights[i]
@@ -647,11 +651,12 @@ class JointParticleFilter:
         #print particleDictionary.totalCount() == 0
         
         if particleDictionary.totalCount() == 0:
-            print len(self.particles)
+            #print len(self.particles)
 
             self.initializeParticles()
-            print len(self.particles)  , "after"
+            #print len(self.particles)  , "after"
 
+            # check for ghosts again
             for p in self.particles:
                 for i in range(self.numGhosts):
                     if noisyDistances[i] == None:
@@ -674,10 +679,12 @@ class JointParticleFilter:
             # resample self.particles
             self.particles = util.nSample(values, keys, self.numParticles)
 
-        for p in self.particles:
-                for i in range(self.numGhosts):
-                    if noisyDistances[i] == None:
-                            p = self.getParticleWithGhostInJail(p, i)
+            for p in self.particles:
+		            for i in range(self.numGhosts):
+		                if noisyDistances[i] == None:
+		                        p = self.getParticleWithGhostInJail(p, i)
+
+		    
 
 
     def getParticleWithGhostInJail(self, particle, ghostIndex):
@@ -739,9 +746,10 @@ class JointParticleFilter:
             # now loop through and update each entry in newParticle...
 
             "*** YOUR CODE HERE ***"
-            for i, p in enumerate(newParticle, start=0):
+            #for i, p in enumerate(newParticle, start=0):
+            for i in range(self.numGhosts):
                 
-                newPosDist = getPositionDistributionForGhost(setGhostPositions(gameState, p), i, self.ghostAgents[i])
+                newPosDist = getPositionDistributionForGhost(setGhostPositions(gameState, newParticle), i, self.ghostAgents[i])
           
                 newParticle = util.sample(newPosDist)
 
