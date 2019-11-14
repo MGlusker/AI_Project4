@@ -298,11 +298,16 @@ class ParticleFilter(InferenceModule):
         parts = self.numParticles
 
         
-        while parts > 0:
-            for pos in self.legalPositions:
+        length = len(self.legalPositions)
+
+        for i in range(parts):
+            self.particles.append(self.legalPositions[i%length])
+
+        # while parts > 0:
+        #     for pos in self.legalPositions:
                 
-                self.particles.append(pos)
-                parts -= 1
+        #         self.particles.append(pos)
+        #         parts -= 1
         
 
        
@@ -746,23 +751,15 @@ class JointParticleFilter:
             # now loop through and update each entry in newParticle...
 
             "*** YOUR CODE HERE ***"
-            # #for i, p in enumerate(newParticle, start=0):
-            #     print p 
-            #     print type(p)
-            #     print i 
-            #     print type(i)
-            #     print self.ghostAgents[i]
-            #     print type(self.ghostAgents[i])
-
+            
             temp = []
             for i in range(self.numGhosts):
 
 
                 newPosDist = getPositionDistributionForGhost(setGhostPositions(gameState, newParticle), i, self.ghostAgents[i])
 
-                #print newPosDist, type(newPosDist)
                 temp.append(util.sample(newPosDist))
-                #newParticle = util.sample(newPosDist)
+                
 
             newParticle = temp
             "*** END YOUR CODE HERE ***"
